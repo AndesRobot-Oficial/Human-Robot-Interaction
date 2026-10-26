@@ -1,0 +1,37 @@
+# Contenedor de desarrollo del equipo HRI (ver docs/docker.md)
+#   docker compose up -d --build    construir y arrancar
+#   docker compose exec hri bash    abrir una terminal (se pueden abrir varias)
+#   docker compose down             detener
+services:
+  hri:
+    build:
+      context: .
+      args:
+        USER_UID: ${HOST_UID:-1000}
+        USER_GID: ${HOST_GID:-1000}
+    image: andesrobot/hri:humble
+    container_name: hri
+    network_mode: host          # ROS 2 ve los mismos nodos que el computador
+    ipc: host
+    environment:
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-42}
+      - ROS_LOCALHOST_ONLY=${ROS_LOCALHOST_ONLY:-1}
+      - PULSE_SERVER=unix:/run/pulse/native
+    volumes:
+      # El repositorio (lo que editas en tu computador se ve dentro al instante)
+      - .:/home/hri/hri_ws/src/andesrobot_hri
+      # Resultados de la compilacion (se conservan entre reinicios)
+      - hri_build:/home/hri/hri_ws/build
+      - hri_install:/home/hri/hri_ws/install
+      - hri_log:/home/hri/hri_ws/log
+      # Audio del computador (PulseAudio / PipeWire)
+      - ${XDG_RUNTIME_DIR:-/run/user/1000}/pulse/native:/run/pulse/native
+    devices:
+      - /dev/snd:/dev/snd
+    stdin_open: true
+    tty: true
+
+volumes:
+  hri_build:
+  hri_install:
+  hri_log:

@@ -70,3 +70,28 @@ Cada pareja trabaja en su rama y pide integrar a `main` con un *pull request*.
 - [Árbol de la prueba 5.1](docs/arbol_reto.md)
 - [Interfaces de otros equipos](docs/contratos_externos.md)
 - [Decisiones y propuestas](docs/decisiones.md)
+
+## Instalación con Docker (recomendada)
+
+```bash
+git clone git@github.com:AndesRobot-Oficial/Human-Robot-Interaction.git
+cd Human-Robot-Interaction
+bash scripts/download_models.sh
+docker compose up -d --build
+docker compose exec hri bash
+# dentro del contenedor:
+colcon build --symlink-install && source install/setup.bash
+```
+
+Guía completa: [docs/docker.md](docs/docker.md)
+
+## ¿Vas a usar una librería nueva?
+
+| Tipo | Dónde agregarla |
+|---|---|
+| Python (`pip install ...`) | `requirements.txt` |
+| Sistema (`sudo apt install ...`) | `apt-packages.txt` |
+| Paquete de ROS 2 | `apt-packages.txt` y el `package.xml` del paquete |
+| Modelo | `models/` y `scripts/download_models.sh` (no se sube a GitHub) |
+
+Después: `docker compose up -d --build`. Detalles: [docs/dependencias.md](docs/dependencias.md)
