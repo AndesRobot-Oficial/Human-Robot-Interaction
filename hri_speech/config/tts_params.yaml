@@ -1,0 +1,5 @@
+tts_node:
+  ros__parameters:
+    voice: "mb-us1"
+    speed: 160
+    volume: 100

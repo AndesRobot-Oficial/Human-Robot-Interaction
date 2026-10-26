@@ -1,0 +1,6 @@
+asr_node:
+  ros__parameters:
+    # Ruta del modelo (lo descarga scripts/download_models.sh)
+    model_path: "models/vosk/vosk-model-small-en-us-0.15"
+    sample_rate: 16000
+    confidence_threshold: 0.6
