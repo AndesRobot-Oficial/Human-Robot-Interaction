@@ -1,0 +1,7 @@
+# /hri/skill_request  (ofrece: task_orchestrator_node) - modo libre
+string skill           # mirar_a, acercarse_a, volver, saludar, poner_luces, recordar_persona, quien_esta
+string args_json
+---
+bool accepted
+string reason
+string result_json

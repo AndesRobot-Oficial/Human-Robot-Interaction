@@ -1,0 +1,7 @@
+# /hri/remember  (ofrece: dialogue_manager_node)
+int32 person_id
+string name
+string drink
+string attribute
+---
+bool success

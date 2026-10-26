@@ -1,0 +1,10 @@
+# /hri/llm_chat  (ofrece: llm_agent_node)
+# En modo reto, reply es un JSON en texto: {"nombre": ..., "bebida": ..., "entendido": ...}
+string user_text
+int32 person_id
+string history_json
+---
+string reply
+string[] skill_calls_json
+---
+string partial_text

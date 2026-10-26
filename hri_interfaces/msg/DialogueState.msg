@@ -1,0 +1,3 @@
+# /hri/dialogue_state  (publica: dialogue_manager_node)
+string state           # greeting, asking_name, asking_drink, introducing...
+string current_guest

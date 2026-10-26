@@ -1,0 +1,10 @@
+# /hri/converse  (ofrece: dialogue_manager_node)
+# intent: greet, ask_name, ask_drink, ask_follow, offer_seat,
+#         describe_guest, introduce, ask_bag, ask_host, wait_drop (*propuesta)
+string intent
+int32 person_id
+---
+string answer
+bool understood
+---
+string state
