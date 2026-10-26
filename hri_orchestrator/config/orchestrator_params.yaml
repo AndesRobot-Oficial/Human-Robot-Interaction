@@ -1,0 +1,4 @@
+task_orchestrator_node:
+  ros__parameters:
+    tick_period_ms: 500.0
+    doorbell_timeout_s: 30.0

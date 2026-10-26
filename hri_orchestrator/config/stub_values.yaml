@@ -1,0 +1,12 @@
+# Valores que devuelven los stubs de otros equipos (referencia).
+# Por ahora estan en behaviours/external/stub.py; este archivo documenta
+# que se espera de cada uno.
+vision:
+  persons: [{id: 1, pose: {frame_id: map, x: 1.0, y: 1.0, yaw: 0.0}, posture: standing, confidence: 0.9}]
+  faces: [{person_id: 1, name: "", confidence: 0.9}]
+  describe_person: "a red shirt"
+  detect_free_seat: {frame_id: map, x: 1.0, y: 1.0, yaw: 0.0}
+navigation:
+  detect_door: {is_open: true}
+arm:
+  gripper_state: {state: holding_object, object_detected: true}

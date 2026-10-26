@@ -1,0 +1,7 @@
+# Lugares con nombre (coordenadas de PRUEBA, en el marco "map").
+# Las coordenadas reales las da el equipo de Navegacion en los Setup Days.
+# yaw en radianes.
+places:
+  start:          {frame_id: map, x: 0.0, y: 0.0, yaw: 0.0}
+  entrance_door:  {frame_id: map, x: 4.0, y: 0.0, yaw: 0.0}
+  living_room:    {frame_id: map, x: 1.0, y: 2.0, yaw: 1.57}
