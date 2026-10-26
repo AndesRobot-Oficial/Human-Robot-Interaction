@@ -1,0 +1,10 @@
+audio_capture_node:
+  ros__parameters:
+    device: "default"
+    sample_rate: 16000
+    channels: 1
+    chunk_size: 4000
+
+speaker_node:
+  ros__parameters:
+    device: "default"
