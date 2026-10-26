@@ -1,0 +1,19 @@
+{
+  "pythonVersion": "3.10",
+  "typeCheckingMode": "standard",
+  "reportPrivateLocalImportUsage": "none",
+  "extraPaths": [
+    "/opt/ros/humble/lib/python3.10/site-packages",
+    "/opt/ros/humble/local/lib/python3.10/dist-packages",
+    "../../install/hri_interfaces/local/lib/python3.10/dist-packages",
+    "../../install/hri_interfaces/lib/python3.10/site-packages",
+    "hri_audio",
+    "hri_speech",
+    "hri_doorbell",
+    "hri_dialogue",
+    "hri_llm",
+    "hri_orchestrator",
+    "hri_bringup"
+  ],
+  "exclude": ["**/build", "**/install", "**/log"]
+}

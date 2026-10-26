@@ -1,0 +1,16 @@
+# Compilacion de colcon
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Modelos (se descargan con scripts/download_models.sh)
+models/*
+!models/README.md
+
+# Editores
+.vscode/
