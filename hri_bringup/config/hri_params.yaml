@@ -1,0 +1,4 @@
+# Parametros comunes a todos los nodos de HRI (se usaran mas adelante).
+/**:
+  ros__parameters:
+    use_sim_time: false
