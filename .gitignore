@@ -16,3 +16,4 @@ models/*
 .vscode/
 hri_speech/models/
 .venv/
+.env

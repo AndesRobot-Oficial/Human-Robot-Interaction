@@ -1,0 +1,6 @@
+# Solo se envian a la construccion los archivos de dependencias
+*
+!apt-packages.txt
+!requirements.txt
+!scripts/install_apt.sh
+!docker/

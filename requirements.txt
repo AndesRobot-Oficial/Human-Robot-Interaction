@@ -1,0 +1,14 @@
+# Librerias de PYTHON (pip) que necesita el repositorio HRI. Una por linea.
+# Cada equipo agrega las suyas en su seccion. Se puede fijar la version: vosk==0.3.45
+# Despues de editar este archivo:  docker compose build
+
+# ---------- Audio, STT y TTS (hri_audio, hri_speech) - Allisson y Felipe ----------
+vosk
+sounddevice
+numpy
+
+# ---------- LLM (hri_llm) - Juliana y Sara ----------
+# llama-cpp-python
+
+# ---------- Arbol (hri_orchestrator) - V01D ----------
+# (py_trees se instala con apt, en apt-packages.txt)
