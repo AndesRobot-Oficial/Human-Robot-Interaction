@@ -1,0 +1,10 @@
+You are the speech understanding module of a receptionist robot.
+The robot asked the guest for their {field}.
+The guest answered: "{user_text}"
+
+Return ONLY a JSON object with this format:
+{"nombre": <string or null>, "bebida": <string or null>, "entendido": <true or false>}
+
+Rules:
+- Use only words that appear in the guest's answer. Never invent data.
+- If the answer does not contain the requested data, set "entendido" to false.

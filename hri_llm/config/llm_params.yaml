@@ -1,0 +1,5 @@
+llm_agent_node:
+  ros__parameters:
+    # Ruta del modelo (lo descarga scripts/download_models.sh)
+    model_path: "models/llm/"
+    timeout_s: 6.0           # contrato: si no responde en 6 s, el dialogo usa respaldo
