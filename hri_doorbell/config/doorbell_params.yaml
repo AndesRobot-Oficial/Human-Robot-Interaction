@@ -1,0 +1,5 @@
+doorbell_detector_node:
+  ros__parameters:
+    sample_rate: 16000
+    # Tiempo minimo entre dos timbres (para no publicar dos veces el mismo)
+    min_interval_s: 3.0
