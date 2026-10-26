@@ -1,0 +1,7 @@
+dialogue_manager_node:
+  ros__parameters:
+    listen_timeout_s: 8.0     # contrato: si no hay respuesta en 8 s, repetir
+    max_repeats: 1            # contrato: repetir una sola vez
+    llm_timeout_s: 6.0        # contrato: si el LLM no responde en 6 s, usar respaldo
+    phrases_file: ""          # vacio = config/phrases.yaml del paquete
+    vocabulary_file: ""       # vacio = config/vocabulary.yaml del paquete

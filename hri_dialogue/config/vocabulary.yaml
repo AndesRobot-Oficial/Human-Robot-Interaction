@@ -1,0 +1,29 @@
+# Nombres y bebidas en ingles (los define el equipo del LLM).
+# Los usan: asr_node (para favorecer estas palabras) y fallback.py.
+names:
+  - Adam
+  - Anna
+  - Charlie
+  - Emma
+  - James
+  - John
+  - Laura
+  - Michael
+  - Olivia
+  - Sophia
+drinks:
+  - coffee
+  - tea
+  - water
+  - milk
+  - orange juice
+  - apple juice
+  - coke
+  - lemonade
+  - beer
+  - wine
+drop_commands:
+  - drop it here
+  - put it here
+  - leave it here
+  - this is the place

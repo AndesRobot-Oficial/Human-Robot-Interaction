@@ -1,0 +1,24 @@
+# Frases del robot por intencion (en ingles). Variables: {name} {drink} {attribute}
+# {other_name} {other_drink}. Se pueden poner varias por intencion para variar.
+greet:
+  - "Hello, welcome to the party."
+ask_name:
+  - "What is your name?"
+ask_drink:
+  - "What is your favorite drink?"
+repeat:
+  - "Sorry, I could not hear you. Could you repeat, please?"
+ask_follow:
+  - "Please follow me to the living room."
+offer_seat:
+  - "Please take a seat here, {name}."
+describe_guest:
+  - "{other_name} is already here. {other_name} is wearing {attribute}."
+introduce:
+  - "{name}, this is {other_name}, and their favorite drink is {other_drink}."
+ask_bag:
+  - "Could you please hand me the bag?"
+ask_host:
+  - "I have a bag for you. Please stand in front of me and guide me."
+wait_drop:
+  - "I am ready to follow you. Tell me where to leave the bag."
