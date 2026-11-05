@@ -1,88 +1,260 @@
-"""llm_agent_node: consulta el LLM (usa LlmBackend).
-
-Contrato (equipo HRI):
-    Ofrece       /hri/llm_chat        hri_interfaces/action/LlmChat       lo usa dialogue_manager_node
-    Se suscribe  /hri/mode            std_msgs/String                     de task_orchestrator_node
-                 /hri/world_context   hri_interfaces/msg/WorldContext     (modo "libre", despues)
-    Llama        /hri/skill_request   hri_interfaces/srv/RequestSkill     (modo "libre", despues)
-
-Modo "reto": solo extrae el nombre o la bebida. reply es un JSON en texto
-(ver json_validator.py). Nunca pide habilidades.
-
-Estado: PLANTILLA (sin funcionalidad).
 """
-import json
-import os
+llm_agent_node: nodo principal del LLM para HRI.
 
-from ament_index_python.packages import get_package_share_directory
+Modo reto:
+- Recibe texto proveniente del STT.
+- Determina si se espera un nombre o una bebida.
+- Usa Phi-4 Mini mediante los extractores desarrollados.
+- Devuelve un JSON estructurado.
+
+El nodo NO controla el flujo de la prueba.
+Eso lo realiza el árbol de comportamiento / dialogue manager.
+"""
+
+import json
+import multiprocessing as mp
+
 from hri_interfaces.action import LlmChat
+
 import rclpy
 from rclpy.action import ActionServer
 from rclpy.node import Node
 from std_msgs.msg import String
 
 from hri_llm.json_validator import validate_reto_reply
-from hri_llm.llm_backend import LlmBackend
+from hri_llm.name_extractor import extract_name
+from hri_llm.drink_extractor_phi import extract_drink
+
+
+MODEL = "phi4-mini:latest"
 
 
 class LlmAgentNode(Node):
 
     def __init__(self):
-        super().__init__('llm_agent_node')
+        super().__init__("llm_agent_node")
 
-        # Parametros (config/llm_params.yaml)
-        self.declare_parameter('model_path', 'models/llm/')
-        self.declare_parameter('timeout_s', 6.0)
-        self.declare_parameter(
-            'reto_prompt_file',
-            os.path.join(get_package_share_directory('hri_llm'), 'prompts',
-                         'reto_extract.txt'))
+        # Parametros
+        self.declare_parameter("timeout_s", 20.0)
+        self.declare_parameter("model_name", MODEL)
 
-        self.mode = 'reto'
-        self.backend = LlmBackend(self.get_parameter('model_path').value)
+        self.mode = "reto"
 
-        self.create_subscription(String, '/hri/mode', self.on_mode, 10)
-        # TODO (modo "libre"): suscripcion a /hri/world_context y cliente de /hri/skill_request
+        # Recibe el modo actual del sistema
+        self.create_subscription(
+            String,
+            "/hri/mode",
+            self.on_mode,
+            10
+        )
 
-        self.chat_server = ActionServer(self, LlmChat, '/hri/llm_chat', self.execute_chat)
+        # Action Server usado por dialogue_manager
+        self.chat_server = ActionServer(
+            self,
+            LlmChat,
+            "/hri/llm_chat",
+            self.execute_chat
+        )
 
-        self.get_logger().info('llm_agent_node listo (plantilla)')
+        self.get_logger().info(
+            "llm_agent_node listo - Phi-4 Mini"
+        )
+
 
     def on_mode(self, msg: String):
         self.mode = msg.data
 
+
+    def get_expected_data(self, history_json: str):
+        """
+        Determina si se espera un nombre o una bebida.
+
+        Por ahora se deja flexible hasta conocer el formato
+        definitivo de history_json enviado por dialogue_manager.
+        """
+
+        if not history_json:
+            return None
+
+        # Intentar leer como JSON
+        try:
+            history = json.loads(history_json)
+
+            for key in [
+                "expected_data",
+                "expected_field",
+                "field",
+                "type"
+            ]:
+                value = history.get(key)
+
+                if isinstance(value, str):
+                    value = value.lower().strip()
+
+                    if value in ["name", "nombre"]:
+                        return "name"
+
+                    if value in [
+                        "drink",
+                        "beverage",
+                        "bebida"
+                    ]:
+                        return "drink"
+
+        except Exception:
+            pass
+
+        # Respaldo temporal:
+        # buscar directamente palabras dentro del texto
+        text = history_json.lower()
+
+        if "name" in text or "nombre" in text:
+            return "name"
+
+        if (
+            "drink" in text
+            or "beverage" in text
+            or "bebida" in text
+        ):
+            return "drink"
+
+        return None
+
+
     def execute_chat(self, goal_handle):
+
         request = goal_handle.request
         result = LlmChat.Result()
 
-        if self.mode == 'reto':
-            # TODO:
-            #   1. armar el prompt con reto_prompt_file, request.user_text y
-            #      request.history_json (que se pregunto: nombre o bebida)
-            #   2. raw = self.backend.generate(prompt, timeout_s)
-            raw = self.backend.generate('', self.get_parameter('timeout_s').value)
-            checked = validate_reto_reply(raw, request.user_text)
+        # ==========================================
+        # MODO RETO
+        # ==========================================
+
+        if self.mode == "reto":
+
+            user_text = request.user_text
+
+            expected_data = self.get_expected_data(
+                request.history_json
+            )
+
+            self.get_logger().info(
+                f"Texto recibido: {user_text}"
+            )
+
+            self.get_logger().info(
+                f"Dato esperado: {expected_data}"
+            )
+
+
+            # ======================================
+            # EXTRAER NOMBRE
+            # ======================================
+
+            if expected_data == "name":
+
+                model_name = self.get_parameter(
+                    "model_name"
+                ).value
+
+                extracted = extract_name(
+                    user_text,
+                    model=model_name
+                )
+
+                reply_data = {
+                    "nombre": extracted.get("name"),
+                    "bebida": None,
+                    "entendido": extracted.get(
+                        "understood",
+                        False
+                    )
+                }
+
+
+            # ======================================
+            # EXTRAER BEBIDA
+            # ======================================
+
+            elif expected_data == "drink":
+
+                extracted = extract_drink(
+                    user_text
+                )
+
+                reply_data = {
+                    "nombre": None,
+                    "bebida": extracted.get("drink"),
+                    "entendido": extracted.get(
+                        "understood",
+                        False
+                    )
+                }
+
+
+            # ======================================
+            # NO SE IDENTIFICO EL DATO ESPERADO
+            # ======================================
+
+            else:
+
+                reply_data = {
+                    "nombre": None,
+                    "bebida": None,
+                    "entendido": False
+                }
+
+
+            # Convertir resultado a JSON
+            raw = json.dumps(reply_data)
+
+            # Validacion final
+            checked = validate_reto_reply(
+                raw,
+                user_text
+            )
+
             result.reply = json.dumps(checked)
+
+
+        # ==========================================
+        # MODO LIBRE - FUTURO
+        # ==========================================
+
         else:
-            # TODO (modo "libre"): conversacion y habilidades
-            result.reply = ''
+
+            result.reply = json.dumps({
+                "nombre": None,
+                "bebida": None,
+                "entendido": False
+            })
+
 
         result.skill_calls_json = []
+
         goal_handle.succeed()
+
         return result
 
 
 def main(args=None):
+
+    mp.freeze_support()
+
     rclpy.init(args=args)
+
     node = LlmAgentNode()
+
     try:
         rclpy.spin(node)
+
     except KeyboardInterrupt:
         pass
+
     finally:
         node.destroy_node()
         rclpy.try_shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
