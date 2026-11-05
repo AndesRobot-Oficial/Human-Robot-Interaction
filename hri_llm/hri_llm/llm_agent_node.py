@@ -52,24 +52,29 @@ class LlmAgentNode(Node):
         self.mode = msg.data
 
     def execute_chat(self, goal_handle):
-        request = goal_handle.request
-        result = LlmChat.Result()
+     request = goal_handle.request
+     result = LlmChat.Result()
 
-        if self.mode == 'reto':
-            # TODO:
-            #   1. armar el prompt con reto_prompt_file, request.user_text y
-            #      request.history_json (que se pregunto: nombre o bebida)
-            #   2. raw = self.backend.generate(prompt, timeout_s)
-            raw = self.backend.generate('', self.get_parameter('timeout_s').value)
-            checked = validate_reto_reply(raw, request.user_text)
-            result.reply = json.dumps(checked)
-        else:
-            # TODO (modo "libre"): conversacion y habilidades
-            result.reply = ''
+     if self.mode == 'reto':
+         try:
+             history = json.loads(request.history_json or '{}')
+         except (ValueError, TypeError):
+             history = {}
 
-        result.skill_calls_json = []
-        goal_handle.succeed()
-        return result
+         field = history.get('field') if isinstance(history, dict) else None
+         if field in ('name', 'drink'):
+             extracted = self.backend.extract_reto(request.user_text, field)
+         else:
+             extracted = {'nombre': None, 'bebida': None, 'entendido': False}
+
+         checked = validate_reto_reply(json.dumps(extracted), request.user_text)
+         result.reply = json.dumps(checked)
+     else:
+         result.reply = ''
+
+     result.skill_calls_json = []
+     goal_handle.succeed()
+     return result
 
 
 def main(args=None):

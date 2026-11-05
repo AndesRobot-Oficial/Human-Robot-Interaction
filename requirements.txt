@@ -8,7 +8,8 @@ sounddevice
 numpy
 
 # ---------- LLM (hri_llm) - Juliana y Sara ----------
-# llama-cpp-python
+ollama
+pydantic>=2
 
 # ---------- Arbol (hri_orchestrator) - V01D ----------
 # (py_trees se instala con apt, en apt-packages.txt)
