@@ -3,9 +3,6 @@
 Paquetes de ROS 2 del equipo de Interacción Humano-Robot (HRI) de AndesRobot para la prueba 5.1
 (Receptionist) de RoboCup@Home 2027.
 
-Por ahora es una plantilla: todo compila y el árbol de comportamiento recorre la prueba completa,
-pero los otros equipos están simulados y los nodos de voz y del LLM todavía no hacen su trabajo.
-
 ## Instalación
 
 Se trabaja dentro de un contenedor de Docker que ya trae ROS 2 Humble, así que no hace falta
