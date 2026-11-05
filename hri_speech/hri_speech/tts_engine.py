@@ -24,7 +24,7 @@ def correct_pronun(text):
 
 
 def main():
-    text_to_synth = "fanta"
+    text_to_synth = "MARTA and MILO are two robots that can bring drinks such as Pepsi, Coca-Cola, or Fanta. They belong to Andes Robot; furthermore, MILO is from Chile, and MARTA is from Colombia."
     print("texto en lenguaje original: ", text_to_synth)
     text_to_synth = correct_pronun(text_to_synth)
     print("texto con cambio de pronunciacion: ", text_to_synth)
