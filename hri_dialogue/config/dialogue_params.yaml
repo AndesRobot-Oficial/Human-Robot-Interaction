@@ -2,6 +2,9 @@ dialogue_manager_node:
   ros__parameters:
     listen_timeout_s: 8.0     # contrato: si no hay respuesta en 8 s, repetir
     max_repeats: 1            # contrato: repetir una sola vez
-    llm_timeout_s: 6.0        # contrato: si el LLM no responde en 6 s, usar respaldo
+    llm_timeout_s: 20.0       # contrato: 6 s. Provisional 20 s (lo que espera el extractor de
+                              # nombres de Phi-4 Mini). Ajustar cuando se mida en el portatil
+    speak_start_timeout_s: 1.5  # si tts_node no avisa que empezo a hablar, no esperar la voz
+    speak_max_s: 30.0         # maximo que se espera a que termine una frase
     phrases_file: ""          # vacio = config/phrases.yaml del paquete
     vocabulary_file: ""       # vacio = config/vocabulary.yaml del paquete

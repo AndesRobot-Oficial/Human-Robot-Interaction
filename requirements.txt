@@ -8,7 +8,8 @@ sounddevice
 numpy
 
 # ---------- LLM (hri_llm) - Juliana y Sara ----------
-# llama-cpp-python
+ollama                # cliente de Ollama (Phi-4 Mini, drink_extractor_phi.py)
+pydantic              # valida el JSON del extractor de bebidas
 
 # ---------- Arbol (hri_orchestrator) - V01D ----------
 # (py_trees se instala con apt, en apt-packages.txt)

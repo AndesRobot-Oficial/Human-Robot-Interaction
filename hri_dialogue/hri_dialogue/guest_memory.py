@@ -22,5 +22,12 @@ class GuestMemory:
     def get(self, person_id: int) -> Optional[Guest]:
         return self._guests.get(person_id)
 
+    def other(self, person_id: int) -> Optional[Guest]:
+        """Otro invitado de la memoria (el que no es person_id), o None."""
+        for pid, guest in self._guests.items():
+            if pid != person_id:
+                return guest
+        return None
+
     def clear(self) -> None:
         self._guests.clear()
