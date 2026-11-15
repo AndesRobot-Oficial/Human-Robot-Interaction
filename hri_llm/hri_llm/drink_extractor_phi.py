@@ -1,6 +1,14 @@
 import ollama
 import json
+import re
 from pydantic import BaseModel
+
+
+TIMEOUT_SECONDS = 20.0
+
+
+def palabras(texto):
+    return " " + " ".join(re.findall(r"[a-z0-9]+", texto.lower())) + " "
 
 
 class DrinkResult(BaseModel):
@@ -20,6 +28,7 @@ Rules:
 - Treat indirect requests such as
   "a glass/cup/bottle of X would be nice/great/perfect"
   as requests for drink X.
+- Treat statements such as "I like X" or "I love X" as the favorite drink X.
 - Never invent a drink.
 - If no specific desired drink is given, drink must be null.
 - If drink is null, understood must be false.
@@ -31,8 +40,8 @@ Sentence:
 
     try:
 
-        response = ollama.chat(
-            model="phi4-mini",
+        response = ollama.Client(timeout=TIMEOUT_SECONDS).chat(
+            model="phi4-mini:3.8b",
 
             messages=[
                 {
@@ -59,6 +68,9 @@ Sentence:
             drink = drink.strip()
 
             if drink.lower() == "null" or drink == "":
+                drink = None
+
+            elif palabras(drink) not in palabras(sentence):
                 drink = None
 
         if drink is None:
