@@ -6,19 +6,18 @@
 python3-pip
 python3-yaml
 python3-colcon-common-extensions
-ros-humble-py-trees
-ros-humble-py-trees-ros
+ros-humble-nav2-msgs
 
-# ---------- Audio (hri_audio, hri_speech) ----------
+# ---------- Audio (hri_speech) ----------
 libportaudio2
 portaudio19-dev
 alsa-utils
 libasound2-plugins
 pulseaudio-utils
-ros-humble-audio-common-msgs   # opcional
 
 # ---------- TTS (hri_speech) ----------
 espeak-ng
+libespeak-ng-dev
 mbrola        # opcional
 mbrola-us1    # opcional
 mbrola-us2    # opcional
