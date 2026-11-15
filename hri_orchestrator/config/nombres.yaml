@@ -1,0 +1,38 @@
+lugares_reto:
+  puerta: indoor
+  sofa: sofa
+  sala: living_room
+
+lugares:
+  fridge: refrigerator
+  refrigerator: refrigerator
+  living room: living_room
+  dining table: dining_table
+  dinner table: dinner_table
+  coffee table: coffee_table
+  bedside table: bedside_table
+  coat rack: coat_rack
+  cooking table: cooking_table
+  kitchen trash bin: kitchen_trash_bin
+  laundry table: laundry_table
+  laundry trash bin: laundry_trash_bin
+  washing machine: washing_machine
+  tv stand: tv_stand
+  tv: tv_stand
+  couch: sofa
+
+objetos:
+  bowl: bowl
+  red bull: redbull_can
+  redbull: redbull_can
+  bull: redbull_can
+  card: card
+  fork: fork
+  spoon: spoon
+  pringles: pringles
+  chips: pringles
+  rubik: rubik_cube
+  rubik cube: rubik_cube
+  cube: rubik_cube
+  bottle: bottle
+  bag: bag

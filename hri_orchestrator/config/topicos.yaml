@@ -1,0 +1,66 @@
+navegacion:
+  ir_a:
+    tipo: accion
+    nombre: /nav/navigate_to_pose
+    mensaje: nav2_msgs/action/NavigateToPose
+  waypoints: casa_lugares.yaml
+  frame: map
+  tiempo_max_s: 120.0
+
+vision:
+  registrar_persona:
+    tipo: topico
+    nombre: /vision/registrar_persona
+    mensaje: std_msgs/msg/String
+  persona_registrada:
+    tipo: topico
+    nombre: /vision/persona_registrada
+    mensaje: std_msgs/msg/String
+  buscar_objeto:
+    tipo: topico
+    nombre: /vision/buscar_objeto
+    mensaje: std_msgs/msg/String
+  objeto_detectado:
+    tipo: topico
+    nombre: /detected_object
+    mensaje: std_msgs/msg/String
+  posicion_objeto:
+    tipo: topico
+    nombre: /object_position
+    mensaje: geometry_msgs/msg/Point
+  persona_al_frente:
+    tipo: topico
+    nombre: /vision/persona_al_frente
+    mensaje: std_msgs/msg/String
+  personas_sofa:
+    tipo: topico
+    nombre: /vision/personas_sofa
+    mensaje: std_msgs/msg/String
+
+garra:
+  agarrar:
+    tipo: topico
+    nombre: /garra/agarrar
+    mensaje: std_msgs/msg/String
+  tiene_objeto:
+    tipo: topico
+    nombre: /garra/tiene_objeto
+    mensaje: std_msgs/msg/Bool
+  entregar:
+    tipo: topico
+    nombre: /garra/entregar
+    mensaje: std_msgs/msg/Bool
+  entregado:
+    tipo: topico
+    nombre: /garra/entregado
+    mensaje: std_msgs/msg/Bool
+  proceder:
+    tipo: topico
+    nombre: /garra/proceder
+    mensaje: std_msgs/msg/Bool
+
+orquestador:
+  estado:
+    tipo: topico
+    nombre: /orquestador/estado
+    mensaje: std_msgs/msg/String

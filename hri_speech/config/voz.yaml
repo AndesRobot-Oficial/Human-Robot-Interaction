@@ -1,0 +1,17 @@
+stt_node:
+  ros__parameters:
+    limite_s: 15.0
+    pausa_s: 1.5
+
+tts_node:
+  ros__parameters:
+    voz: mb-us1
+
+timbre_node:
+  ros__parameters:
+    f_min: 400.0
+    f_max: 3000.0
+    ratio_min: 0.6
+    db_sobre_ruido: 10.0
+    estabilidad_bins: 1
+    duracion_min: 0.3
