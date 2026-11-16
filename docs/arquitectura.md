@@ -1,56 +1,81 @@
 # Arquitectura de HRI
 
-Basada en la propuesta de la líder del equipo (diagrama de nodos y contrato de integración).
+## Nodos y tópicos internos
 
-## Nodos
+Todos con `std_msgs`. Los datos van en JSON dentro de un `String`.
 
-| Nodo | Paquete | Qué hace |
+| Nodo | Escucha | Publica |
 |---|---|---|
-| `audio_capture_node` | `hri_audio` | Único nodo que abre el micrófono |
-| `speaker_node` | `hri_audio` | Único nodo que usa el parlante |
-| `asr_node` | `hri_speech` | Audio → texto (Vosk) |
-| `tts_node` | `hri_speech` | Texto → voz (espeak-ng) |
-| `doorbell_detector_node` | `hri_doorbell` | Detecta el timbre |
-| `dialogue_manager_node` | `hri_dialogue` | Maneja cada turno de diálogo que pide el orquestador |
-| `llm_agent_node` | `hri_llm` | Consulta el LLM (modo "reto": extraer nombre y bebida) |
-| `task_orchestrator_node` | `hri_orchestrator` | Árbol de comportamiento: decide qué hace el robot y lo pide a cada equipo |
+| `timbre_node` | `/hri/timbre/activar` (Bool) | `/hri/doorbell_detected` (Bool) |
+| `stt_node` | `/hri/escuchar` (String: `libre` u `orden`), `/hri/hablando` (Bool) | `/hri/speech_text` (String) |
+| `tts_node` | `/hri/say` (String) | `/hri/hablando` (Bool) |
+| `llm_node` | `/hri/llm/entrada` (String) | `/hri/llm/salida` (JSON `{nombre, bebida, entendido}`) |
+| `bert_node` | `/hri/bert/entrada` (String) | `/hri/bert/salida` (JSON `{objeto, lugar, entendido}`) |
+| `task_orchestrator_node` | `/orquestador/iniciar` (Bool) y los de arriba | `/orquestador/estado` (String) y los de arriba |
 
-## Conexiones dentro de HRI
+- El micrófono lo abre el `timbre_node` solo mientras espera el timbre, y el `stt_node` solo mientras escucha una frase.
+- El `stt_node` no escucha mientras el robot habla (`/hri/hablando`).
 
+## Con los otros equipos: conectores
+
+El orquestador no usa tópicos directamente: llama funciones de `hri_orchestrator/conectores.py`
+(`nav.ir_a`, `vision.buscar_objeto`, `garra.agarrar`, ...). Cada conector lee `config/topicos.yaml`:
+
+```yaml
+navegacion:
+  ir_a:
+    tipo: accion          # accion o topico
+    nombre: /nav/navigate_to_pose
+    mensaje: nav2_msgs/action/NavigateToPose
 ```
-micrófono ─► audio_capture_node ─/hri/audio─┬─► asr_node ─/hri/speech_text─► dialogue_manager_node
-                                            └─► doorbell_detector_node ─/hri/doorbell_detected─► task_orchestrator_node
 
-task_orchestrator_node ─/hri/converse, /hri/remember─► dialogue_manager_node ─/hri/llm_chat─► llm_agent_node
-dialogue_manager_node ─/hri/say─► tts_node ─/hri/play_sound─► speaker_node ─► parlante
-task_orchestrator_node ─/hri/play_sound─► speaker_node
-tts_node ─/hri/speaking─► dialogue_manager_node, asr_node
-task_orchestrator_node ─/hri/mode─► dialogue_manager_node, llm_agent_node
-```
+- Si cambia el **nombre**, se cambia en el yaml.
+- Si cambia la **forma** (por ejemplo, de tópico a servicio), se cambia solo la clase de ese equipo en `conectores.py`.
+- Un `nombre` vacío desactiva esa parte.
 
-## Interfaces de HRI
+| Equipo | Lo que HRI envía | Lo que HRI espera |
+|---|---|---|
+| Navegación | Acción `/nav/navigate_to_pose` con la pose del waypoint (de `casa_lugares.yaml`) | El resultado de la acción (llegó o no) |
+| Visión | `/vision/registrar_persona` (ID), `/vision/buscar_objeto` (clase) | `/vision/persona_registrada` (ID), `/detected_object` (clase), `/object_position` (Point), `/vision/persona_al_frente` (ID), `/vision/personas_sofa` (JSON `{ID: lado}`) |
+| Garra | `/garra/agarrar` (clase), `/garra/entregar` (Bool), `/garra/proceder` (Bool, bolsa) | `/garra/tiene_objeto` (Bool), `/garra/entregado` (Bool) |
+| Todos | `/orquestador/estado` (String: en qué paso va, "orden terminada ...") | — |
 
-| Interfaz | Tipo | Publica u ofrece | La usa |
-|---|---|---|---|
-| `/hri/audio` | Tópico `audio_common_msgs/AudioData` (16 kHz, mono) | `audio_capture_node` | `asr_node`, `doorbell_detector_node` |
-| `/hri/doorbell_detected` | Tópico `std_msgs/Bool` (una vez por timbre) | `doorbell_detector_node` | `task_orchestrator_node` |
-| `/hri/play_sound` | Servicio `PlaySound.srv` | `speaker_node` | `task_orchestrator_node`, `tts_node` |
-| `/hri/speech_text` | Tópico `std_msgs/String` | `asr_node` | `dialogue_manager_node` |
-| `/hri/say` | Tópico `std_msgs/String` | `dialogue_manager_node` | `tts_node` |
-| `/hri/speaking` (*) | Tópico `std_msgs/Bool` | `tts_node` | `dialogue_manager_node`, `asr_node` |
-| `/hri/dialogue_state` | Tópico `DialogueState.msg` | `dialogue_manager_node` | `task_orchestrator_node` |
-| `/hri/remember` | Servicio `RememberGuest.srv` | `dialogue_manager_node` | `task_orchestrator_node` |
-| `/hri/converse` | Acción `Converse.action` | `dialogue_manager_node` | `task_orchestrator_node` |
-| `/hri/mode` | Tópico `std_msgs/String` ("reto" / "libre") | `task_orchestrator_node` | `dialogue_manager_node`, `llm_agent_node` |
-| `/hri/world_context` | Tópico `WorldContext.msg` | `task_orchestrator_node` | `llm_agent_node` (modo "libre") |
-| `/hri/llm_chat` | Acción `LlmChat.action` | `llm_agent_node` | `dialogue_manager_node` |
-| `/hri/skill_request` | Servicio `RequestSkill.srv` | `task_orchestrator_node` | `llm_agent_node` (modo "libre") |
+**Nombre y cara:** el orquestador da el ID (`invitado_1`, `invitado_2`). Visión guarda la cara con ese ID y HRI guarda
+el nombre y la bebida con el mismo ID.
 
-(*) Propuesta del equipo HRI, no está en el contrato original.
+## Flujo (`task_orchestrator_node.secuencia`)
 
-## Reglas del diálogo (modo "reto")
+Para cada invitado (`invitado_1`, luego `invitado_2`):
 
-- Si el ASR no entiende nada en 8 s, se repite la pregunta una sola vez.
-- Si el LLM no responde en 6 s, el `dialogue_manager_node` usa la lista de nombres y bebidas.
-- Nunca se hacen preguntas de confirmación ("Did you say John?").
-- El LLM nunca decide el flujo de la prueba: lo decide el árbol.
+1. Esperar el timbre (`timbre_node`).
+2. Ir a la puerta (`puerta → indoor`).
+3. Registrar: Visión registra la cara con el ID mientras HRI saluda, pregunta, escucha (modo libre) y el LLM saca nombre y bebida. Si falta algo, pregunta de nuevo (hasta 3 veces).
+4. "Please follow me to the sofa" → ir al sofá.
+5. Pedir la orden (modo orden) → BERT da objeto y lugar → `nombres.yaml` los traduce a clase de Visión y waypoint.
+6. Ir al lugar → Visión detecta el objeto → Garra lo agarra.
+7. Volver a la sala → Visión confirma la persona al frente → "here is your ..." → Garra entrega (3 s) → `orden terminada`.
+
+Al final: presentar a los dos invitados (nombre y bebida del otro), recibir la bolsa (Visión la detecta, aviso de seguridad, `garra/proceder`) y `reto terminado`.
+Si un equipo no responde a tiempo, el orquestador lo avisa en el log y sigue.
+
+## Lo que se agregó a cada avance
+
+| Avance | Autores | Qué se agregó |
+|---|---|---|
+| STT (`stt_engine.py`) | Allisson y Felipe | Modo `libre` (sin gramática) para nombre y bebida, además del modo `orden` con su lista. `escuchar(modo)` devuelve `{texto, confianza, lugar, objeto}` y junta la frase hasta 1.5 s de silencio. Descarta pedazos con confianza menor a su `UMBRAL`. Busca el modelo en `models/vosk/`. `rubik's cube` → `rubik cube` (Vosk no conoce `rubik's`). Lo que corría al abrir el archivo quedó en `main()` |
+| TTS (`tts_engine.py`) | Allisson, Felipe y watitaa | Sin cambios. Se agregó la dependencia `espeak-ng-python` y `libespeak-ng-dev`. `tts_node` usa `hablar(texto, voz)` cuando exista; mientras, usa su librería y su `correct_pronun` |
+| LLM (`name_extractor.py`, `drink_extractor_phi.py`) | Sara y Juliana | Un solo modelo `phi4-mini:3.8b` y `OLLAMA_HOST` (los cambios del PR #2 de Juliana). En bebidas: tiempo límite de 20 s, descartar bebidas que la persona no dijo y la regla "I like X". El calentamiento del modelo (idea del PR #2) está en `llm_node` |
+| BERT (`bert_extractor.py`) | Juan Rivera | `run_inference`, `combine_subwords`, `extract_slots` y `clean_slots` salen de su notebook `Ruta.ipynb`. Se agregó `interpretar()`, que quita `[CLS]`/`[SEP]`, y `extract_slots` junta dos palabras de objeto seguidas ("orange juice"). El modelo es su `checkpoint-339`. T5 no se usa |
+| Timbre (`timbre_engine.py`) | Nuevo | Detecta un tono estable (misma frecuencia ≥ 0.3 s, ≥ 10 dB sobre el ruido). `calibrar` muestra lo que mide para ajustar `voz.yaml` |
+
+## Lo que se quitó (sigue en el historial de git)
+
+`hri_dialogue` (gestor de diálogo), `hri_audio`, `hri_doorbell`, `hri_interfaces`, el árbol de `hri_orchestrator` (`py_trees`),
+`llm_agent_node` y `llm_backend`, y los launch viejos de `hri_bringup`.
+
+## Pendientes
+
+- STT: el modelo pequeño de Vosk confunde nombres ("John" → "joan"). Opciones: modelo más grande o lista de nombres del reto.
+- TTS: falta `hablar(texto, voz)` en `tts_engine.py`.
+- Visión y Garra: confirmar nombres y tipos de sus tópicos y actualizar `topicos.yaml`.
+- Navegación: confirmar el waypoint de la puerta.

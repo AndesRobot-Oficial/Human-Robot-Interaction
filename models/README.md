@@ -5,6 +5,6 @@ Para descargarlos: `bash scripts/download_models.sh`
 
 | Carpeta | Contenido | Lo usa |
 |---|---|---|
-| `vosk/` | Modelo de STT (`vosk-model-small-en-us-0.15`) | `asr_node` |
-| `llm/` | Modelo del LLM | `llm_agent_node` |
-| `bert_t5/` | Checkpoints de BERT y T5 (modo "libre", mas adelante) | `llm_agent_node` |
+| `vosk/` | Modelo de STT (`vosk-model-small-en-us-0.15`) | `stt_engine.py` / `stt_node` |
+| `bert/` | BERT de ordenes (`checkpoint-339` del repo de Juan Rivera) | `bert_extractor.py` / `bert_node` |
+| `llm/` | Sin uso: el LLM (Phi-4 Mini) corre en Ollama, en el computador | — |
