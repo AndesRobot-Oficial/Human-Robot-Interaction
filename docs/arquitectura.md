@@ -63,7 +63,7 @@ Si un equipo no responde a tiempo, el orquestador lo avisa en el log y sigue.
 | Avance | Autores | Qué se agregó |
 |---|---|---|
 | STT (`stt_engine.py`) | Allisson y Felipe | Modo `libre` (sin gramática) para nombre y bebida, además del modo `orden` con su lista. `escuchar(modo)` devuelve `{texto, confianza, lugar, objeto}` y junta la frase hasta 1.5 s de silencio. Descarta pedazos con confianza menor a su `UMBRAL`. Busca el modelo en `models/vosk/`. `rubik's cube` → `rubik cube` (Vosk no conoce `rubik's`). Lo que corría al abrir el archivo quedó en `main()` |
-| TTS (`tts_engine.py`) | Allisson, Felipe y watitaa | Sin cambios. Se agregó la dependencia `espeak-ng-python` y `libespeak-ng-dev`. `tts_node` usa `hablar(texto, voz)` cuando exista; mientras, usa su librería y su `correct_pronun` |
+| TTS (`tts_engine.py`) | Allisson, Felipe y watitaa | `correct_pronun` corrige por palabra completa y sin importar mayúsculas (antes no corregía "Pepsi" y cambiaba "fantastic"); se agregó "coca-cola" al diccionario. Nueva `hablar(texto, voz)` (voz `mb-us1` Martha, `en-us` Milo), que usa `tts_node`. Dependencias: `espeak-ng-python` y `libespeak-ng-dev` |
 | LLM (`name_extractor.py`, `drink_extractor_phi.py`) | Sara y Juliana | Un solo modelo `phi4-mini:3.8b` y `OLLAMA_HOST` (los cambios del PR #2 de Juliana). En bebidas: tiempo límite de 20 s, descartar bebidas que la persona no dijo y la regla "I like X". El calentamiento del modelo (idea del PR #2) está en `llm_node` |
 | BERT (`bert_extractor.py`) | Juan Rivera | `run_inference`, `combine_subwords`, `extract_slots` y `clean_slots` salen de su notebook `Ruta.ipynb`. Se agregó `interpretar()`, que quita `[CLS]`/`[SEP]`, y `extract_slots` junta dos palabras de objeto seguidas ("orange juice"). El modelo es su `checkpoint-339`. T5 no se usa |
 | Timbre (`timbre_engine.py`) | Nuevo | Detecta un tono estable (misma frecuencia ≥ 0.3 s, ≥ 10 dB sobre el ruido). `calibrar` muestra lo que mide para ajustar `voz.yaml` |
@@ -76,6 +76,5 @@ Si un equipo no responde a tiempo, el orquestador lo avisa en el log y sigue.
 ## Pendientes
 
 - STT: el modelo pequeño de Vosk confunde nombres ("John" → "joan"). Opciones: modelo más grande o lista de nombres del reto.
-- TTS: falta `hablar(texto, voz)` en `tts_engine.py`.
 - Visión y Garra: confirmar nombres y tipos de sus tópicos y actualizar `topicos.yaml`.
 - Navegación: confirmar el waypoint de la puerta.
