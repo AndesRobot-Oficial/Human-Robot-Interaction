@@ -3,7 +3,7 @@
 # Uso: bash scripts/download_models.sh
 set -e
 cd "$(dirname "$0")/.."
-mkdir -p models/vosk models/llm models/bert_t5
+mkdir -p models/vosk models/llm models/bert
 
 # ---------- STT: Vosk (ingles, modelo pequeno) ----------
 VOSK=vosk-model-small-en-us-0.15
@@ -19,7 +19,14 @@ fi
 # ---------- LLM (Juliana y Sara) ----------
 # TODO: descargar el modelo elegido en models/llm/
 
-# ---------- BERT + T5 (modo "libre", mas adelante) ----------
-# TODO: copiar los checkpoints en models/bert_t5/
+# ---------- BERT (ordenes: objeto y lugar) ----------
+BERT_URL=https://media.githubusercontent.com/media/JuanRivera182003/LLM-/main/bert_token_classification_model/checkpoint-339
+for f in config.json model.safetensors tokenizer.json tokenizer_config.json special_tokens_map.json vocab.txt; do
+    if [ ! -s "models/bert/$f" ]; then
+        echo "Descargando BERT: $f"
+        wget -q --show-progress -O "models/bert/$f" "$BERT_URL/$f"
+    fi
+done
+echo "BERT listo en models/bert"
 
 echo "Listo."

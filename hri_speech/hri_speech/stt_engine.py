@@ -6,8 +6,22 @@ import time
 import os 
 import json
 
-base_dir = os.path.dirname(os.path.abspath(__file__))
-model_path =os.path.join(base_dir, "..", "models", "vosk-model-small-en-us-0.15")
+base_dir = os.path.dirname(os.path.realpath(__file__))
+
+
+def ruta_modelo(nombre="vosk-model-small-en-us-0.15"):
+    opciones = [
+        os.path.join(os.environ.get("HRI_MODELS_DIR", ""), "vosk", nombre),
+        os.path.join(base_dir, "..", "..", "models", "vosk", nombre),
+        os.path.join(base_dir, "..", "models", nombre),
+    ]
+    for ruta in opciones:
+        if os.path.isdir(ruta):
+            return ruta
+    return opciones[-1]
+
+
+model_path = ruta_modelo()
 model= Model(model_path) #para que funcione vosk dentro de la carpeta
 
 
@@ -47,7 +61,7 @@ LUGARES = {
 OBJETOS = {
     "cup": "cup", "bowl": "bowl", "red bull": "redbull", "card": "card",
     "fork":"fork", "spoon":"spoon", "bottle":"bottle",
-    "bag": "bag", "pringles": "pringles", "rubik's cube": "rubik"
+    "bag": "bag", "pringles": "pringles", "rubik cube": "rubik", "rubik": "rubik"
 }
 RELLENO = [
 
@@ -90,11 +104,6 @@ def leer(resultado_json): # funcion para leer el resultado de la frase
     palabras = r.get("result", [])
     
     return texto, palabras 
-
-
-
-def limpiar(palabras):  # quita los [unk] de la lista de palabras
-    return [p for p in palabras if p["word"] != "[unk]"]
 
 
 
@@ -145,38 +154,95 @@ def mostrar(resultado_json):
     print(f"Lugar: {lugar} ({conf_l:.2f}) | Objeto: {objeto} ({conf_o:.2f})\n")
 
 
-        
+def crear_reconocedor(modo, samplerate):
+    if modo == "libre":
+        rec = KaldiRecognizer(model, samplerate)
+    else:
+        gramatica = json.dumps(list(LUGARES) + list(OBJETOS) + RELLENO)
+        rec = KaldiRecognizer(model, samplerate, gramatica)
+    rec.SetWords(True)
+    return rec
+
+
+def resumir(palabras):
+    if not palabras:
+        return None
+    lugar, conf_l = buscar(palabras, LUGARES)
+    objeto, conf_o = buscar(palabras, OBJETOS)
+    return {
+        "texto": " ".join(p["word"] for p in palabras),
+        "confianza": round(cal_conf(palabras), 2),
+        "lugar": lugar,
+        "objeto": objeto,
+    }
+
+
+def analizar(resultado_json):
+    texto, palabras = leer(resultado_json)
+    return resumir(limpiar(palabras))
+
+
+def escuchar(modo="orden", limite=15.0, dispositivo=None, pausa=1.5):
+    samplerate = int(sd.query_devices(dispositivo, "input")["default_samplerate"])
+    rec = crear_reconocedor(modo, samplerate)
+    cola = queue.Queue()
+    palabras = []
+    ultima_voz = None
+
+    def guardar(indata, frames, M_time, status):
+        cola.put(bytes(indata))
+
+    with sd.RawInputStream(samplerate=samplerate, blocksize=4000, dtype="int16", channels=1,
+                           device=dispositivo, callback=guardar):
+        inicio = time.time()
+        while time.time() - inicio < limite:
+            try:
+                data = cola.get(timeout=0.2)
+            except queue.Empty:
+                data = None
+            if data is not None:
+                if rec.AcceptWaveform(data):
+                    nuevas = limpiar(leer(rec.Result())[1])
+                    if nuevas and cal_conf(nuevas) >= UMBRAL:
+                        palabras += nuevas
+                        ultima_voz = time.time()
+                elif json.loads(rec.PartialResult()).get("partial"):
+                    ultima_voz = time.time()
+            if palabras and ultima_voz and time.time() - ultima_voz > pausa:
+                break
+    final = limpiar(leer(rec.FinalResult())[1])
+    if final and cal_conf(final) >= UMBRAL:
+        palabras += final
+    return resumir(palabras)
+
+
 q = queue.Queue()
 def callback(indata, frames, M_time, status):
     if status: print(status, file=sys.stderr)
     q.put(bytes(indata))
 
 
-
-
-samplerate = int(sd.query_devices(None, "input")["default_samplerate"])
-gramatica = json.dumps(list(LUGARES) + list(OBJETOS) + RELLENO)
-rec = KaldiRecognizer(model, samplerate, gramatica)
-rec.SetWords(True)
-
-
-
-
-#rec.SetEndpointerDelays(5.0, 0.4, 20.0)
-print("🎙️  Escuchando... (Ctrl+C para salir)\n")
-
-
 limtiempo= 80
 
 
-with sd.RawInputStream(samplerate=samplerate, blocksize=4000, dtype="int16", channels=1, callback=callback):#muestras de audio
-    inicio_audio= time.time() #fijar tiempo de inicio
-    while time.time()- inicio_audio < limtiempo:
-        data = q.get()
-        if rec.AcceptWaveform(data):#vosk reconoce la frase y devuelve el resultado en json
-            mostrar(rec.Result()) #funcion mostrar resultado por frase
-print("            tiempo terminado")
+def main():
+    modo = sys.argv[1] if len(sys.argv) > 1 else "orden"
+    samplerate = int(sd.query_devices(None, "input")["default_samplerate"])
+    rec = crear_reconocedor(modo, samplerate)
 
-mostrar(rec.FinalResult())# funcion procesar para la frase final
+    #rec.SetEndpointerDelays(5.0, 0.4, 20.0)
+    print("🎙️  Escuchando... (Ctrl+C para salir)\n")
+
+    with sd.RawInputStream(samplerate=samplerate, blocksize=4000, dtype="int16", channels=1, callback=callback):#muestras de audio
+        inicio_audio= time.time() #fijar tiempo de inicio
+        while time.time()- inicio_audio < limtiempo:
+            data = q.get()
+            if rec.AcceptWaveform(data):#vosk reconoce la frase y devuelve el resultado en json
+                mostrar(rec.Result()) #funcion mostrar resultado por frase
+    print("            tiempo terminado")
+
+    mostrar(rec.FinalResult())# funcion procesar para la frase final
 
 
+if __name__ == "__main__":
+    main()

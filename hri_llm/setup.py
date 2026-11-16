@@ -20,12 +20,12 @@ setup(
     zip_safe=True,
     maintainer='V01D',
     maintainer_email='tu_correo@ejemplo.com',
-    description='Agente LLM: /hri/llm_chat (HRI)',
+    description='Extractores LLM: nombre y bebida (HRI)',
     license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'llm_agent_node = hri_llm.llm_agent_node:main',
+            'llm_node = hri_llm.llm_node:main',
         ],
     },
 )

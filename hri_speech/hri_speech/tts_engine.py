@@ -1,5 +1,6 @@
 from espeak_ng import espeak_AUDIO_OUTPUT
 import espeak_ng
+import re
 #import time
 
 """
@@ -7,6 +8,7 @@ Simple 'hello world' example.
 """
 
 dicc_pronun = {"cocacola": "coh cah colah",
+"coca-cola": "coh cah colah",
 "MILO": "may loh",
 "UNAB": "uhnab",
 "chile": "shih leh",
@@ -17,10 +19,23 @@ dicc_pronun = {"cocacola": "coh cah colah",
 "fanta": "fan tah"
 }
 
+VOZ = "mb-us1"
+iniciado = False
+
+
 def correct_pronun(text):
     for palabra, pronun in dicc_pronun.items():
-        text = text.replace(palabra, pronun)
+        text = re.sub(r"\b" + re.escape(palabra) + r"(?=s?\b)", pronun, text, flags=re.IGNORECASE)
     return text
+
+
+def hablar(texto, voz=VOZ):
+    global iniciado
+    if not iniciado:
+        espeak_ng.initialize(output=espeak_AUDIO_OUTPUT.AUDIO_OUTPUT_SYNCH_PLAYBACK)
+        iniciado = True
+    espeak_ng.set_voice_by_properties(name=voz)
+    espeak_ng.synth(correct_pronun(texto))
 
 
 def main():

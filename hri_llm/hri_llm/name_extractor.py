@@ -15,9 +15,11 @@ import time
 import unicodedata
 import urllib.error
 import urllib.request
+import os
 
 MODEL = "phi4-mini:3.8b"
-URL = "http://127.0.0.1:11434/api/chat"
+OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434")
+URL = OLLAMA_HOST.rstrip("/") + "/api/chat"
 TIMEOUT_SECONDS = 20.0  # Provisional; incluye la carga del modelo.
 NAMES = ["Juliana", "Sarah", "John", "Mary", "Alex", "James"]
 

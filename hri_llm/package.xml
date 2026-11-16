@@ -3,13 +3,12 @@
 <package format="3">
   <name>hri_llm</name>
   <version>0.1.0</version>
-  <description>Agente LLM: /hri/llm_chat (HRI)</description>
+  <description>Extractores LLM: nombre y bebida (HRI)</description>
   <maintainer email="tu_correo@ejemplo.com">V01D</maintainer>
   <license>MIT</license>
 
   <exec_depend>rclpy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
-  <exec_depend>hri_interfaces</exec_depend>
   <exec_depend>ament_index_python</exec_depend>
 
   <test_depend>python3-pytest</test_depend>

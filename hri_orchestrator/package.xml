@@ -3,16 +3,14 @@
 <package format="3">
   <name>hri_orchestrator</name>
   <version>0.1.0</version>
-  <description>Orquestador con arbol de comportamiento py_trees (HRI)</description>
+  <description>Orquestador del reto (HRI)</description>
   <maintainer email="tu_correo@ejemplo.com">V01D</maintainer>
   <license>MIT</license>
 
   <exec_depend>rclpy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>hri_interfaces</exec_depend>
-  <exec_depend>py_trees</exec_depend>
-  <exec_depend>py_trees_ros</exec_depend>
+  <exec_depend>nav2_msgs</exec_depend>
   <exec_depend>ament_index_python</exec_depend>
   <exec_depend>python3-yaml</exec_depend>
 

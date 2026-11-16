@@ -2,13 +2,17 @@
 # Cada equipo agrega las suyas en su seccion. Se puede fijar la version: vosk==0.3.45
 # Despues de editar este archivo:  docker compose build
 
-# ---------- Audio, STT y TTS (hri_audio, hri_speech) - Allisson y Felipe ----------
+# ---------- Audio, STT y TTS (hri_speech) - Allisson y Felipe ----------
 vosk
 sounddevice
 numpy
+espeak-ng-python
 
 # ---------- LLM (hri_llm) - Juliana y Sara ----------
-# llama-cpp-python
+ollama
+pydantic
 
-# ---------- Arbol (hri_orchestrator) - V01D ----------
-# (py_trees se instala con apt, en apt-packages.txt)
+# ---------- BERT (hri_bert) ----------
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.5.1+cpu
+transformers==4.46.3

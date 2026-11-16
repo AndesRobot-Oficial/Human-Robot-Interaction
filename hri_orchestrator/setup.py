@@ -19,12 +19,13 @@ setup(
     zip_safe=True,
     maintainer='V01D',
     maintainer_email='tu_correo@ejemplo.com',
-    description='Orquestador con arbol de comportamiento py_trees (HRI)',
+    description='Orquestador del reto (HRI)',
     license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
             'task_orchestrator_node = hri_orchestrator.task_orchestrator_node:main',
+            'simulador_equipos = hri_orchestrator.simulador_equipos:main',
         ],
     },
 )
