@@ -24,8 +24,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'asr_node = hri_speech.asr_node:main',
+            'stt_node = hri_speech.stt_node:main',
             'tts_node = hri_speech.tts_node:main',
+            'timbre_node = hri_speech.timbre_node:main',
         ],
     },
 )

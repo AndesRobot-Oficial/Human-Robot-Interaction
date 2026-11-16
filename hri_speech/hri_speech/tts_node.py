@@ -1,48 +1,55 @@
-"""tts_node: convierte texto en voz (usa TtsEngine) y la envia al parlante.
+import queue
+import threading
 
-Contrato (equipo HRI):
-    Se suscribe  /hri/say          std_msgs/String               de dialogue_manager_node
-    Llama        /hri/play_sound   hri_interfaces/srv/PlaySound  ofrece speaker_node
-    Publica      /hri/speaking     std_msgs/Bool                 (*propuesta) true al empezar, false al terminar
-
-Estado: PLANTILLA (sin funcionalidad).
-"""
-from hri_interfaces.srv import PlaySound
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool, String
 
-from hri_speech.tts_engine import TtsEngine
+from hri_speech import tts_engine
 
 
 class TtsNode(Node):
 
     def __init__(self):
         super().__init__('tts_node')
+        self.declare_parameter('voz', 'mb-us1')
+        self.cola = queue.Queue()
+        self.iniciado = False
+        self.pub_hablando = self.create_publisher(Bool, '/hri/hablando', 10)
+        self.create_subscription(String, '/hri/say', self.on_say, 10)
+        threading.Thread(target=self.trabajar, daemon=True).start()
+        self.get_logger().info('tts_node listo: dice lo que llega por /hri/say')
 
-        # Parametros (config/tts_params.yaml)
-        self.declare_parameter('voice', 'mb-us1')
-        self.declare_parameter('speed', 160)
-        self.declare_parameter('volume', 100)
+    def on_say(self, msg):
+        if msg.data.strip():
+            self.cola.put(msg.data)
 
-        self.engine = TtsEngine(
-            voice=self.get_parameter('voice').value,
-            speed=self.get_parameter('speed').value,
-            volume=self.get_parameter('volume').value)
+    def decir(self, texto):
+        voz = self.get_parameter('voz').value
+        if hasattr(tts_engine, 'hablar'):
+            tts_engine.hablar(texto, voz)
+            return
+        if not self.iniciado:
+            tts_engine.espeak_ng.initialize(
+                output=tts_engine.espeak_AUDIO_OUTPUT.AUDIO_OUTPUT_SYNCH_PLAYBACK)
+            self.iniciado = True
+        tts_engine.espeak_ng.set_voice_by_properties(name=voz)
+        tts_engine.espeak_ng.synth(tts_engine.correct_pronun(texto))
 
-        self.say_sub = self.create_subscription(String, '/hri/say', self.on_say, 10)
-        self.speaking_pub = self.create_publisher(Bool, '/hri/speaking', 10)
-        self.play_client = self.create_client(PlaySound, '/hri/play_sound')
-
-        self.get_logger().info('tts_node listo (plantilla)')
-
-    def on_say(self, msg: String):
-        self.get_logger().info(f'[plantilla] decir: "{msg.data}"')
-        # TODO:
-        #   1. publicar /hri/speaking = true
-        #   2. audio, rate = self.engine.synthesize(msg.data)
-        #   3. llamar a /hri/play_sound con audio_data y sample_rate
-        #   4. cuando termine, publicar /hri/speaking = false
+    def trabajar(self):
+        while rclpy.ok():
+            try:
+                texto = self.cola.get(timeout=0.5)
+            except queue.Empty:
+                continue
+            self.pub_hablando.publish(Bool(data=True))
+            self.get_logger().info(f'digo: "{texto}"')
+            try:
+                self.decir(texto)
+            except Exception as error:
+                self.get_logger().error(f'error del TTS: {error}')
+            if self.cola.empty():
+                self.pub_hablando.publish(Bool(data=False))
 
 
 def main(args=None):
@@ -50,7 +57,7 @@ def main(args=None):
     node = TtsNode()
     try:
         rclpy.spin(node)
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, rclpy.executors.ExternalShutdownException):
         pass
     finally:
         node.destroy_node()
