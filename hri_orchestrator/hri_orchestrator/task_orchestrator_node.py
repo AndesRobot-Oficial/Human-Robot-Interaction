@@ -96,10 +96,55 @@ class TaskOrchestratorNode(Node):
         self.decir('vamos_sofa')
         self.ir('sofa')
 
+    def entender_orden(self, nombre):
+        for intento in range(self.get_parameter('intentos').value):
+            self.decir('pedir_orden' if intento == 0 else 'repetir_orden', nombre=nombre)
+            texto = self.c.hri.escuchar('orden')
+            self.get_logger().info(f'[invitado] "{texto}"')
+            if not texto:
+                continue
+            r = self.c.hri.interpretar_orden(texto)
+            objeto, lugar = r.get('objeto'), r.get('lugar')
+            if not objeto or not lugar:
+                continue
+            clase = self.nombres['objetos'].get(objeto.lower())
+            waypoint = self.nombres['lugares'].get(lugar.lower(), lugar.lower().replace(' ', '_'))
+            if clase is None:
+                self.decir('objeto_desconocido', objeto=objeto)
+                continue
+            if waypoint not in self.c.nav.waypoints:
+                self.decir('lugar_desconocido', lugar=lugar)
+                continue
+            return {'objeto': objeto, 'clase': clase, 'lugar': lugar, 'waypoint': waypoint}
+        return None
+
+    def traer_objeto(self, invitado):
+        nombre = self.invitados.get(invitado, {}).get('nombre') or 'friend'
+        orden = self.entender_orden(nombre)
+        if orden is None:
+            self.estado(f'no se entendio la orden de {invitado}')
+            return False
+        self.estado(f'orden de {invitado}: {orden}')
+        self.decir('voy_por', objeto=orden['objeto'], lugar=orden['lugar'])
+        self.ir(orden['waypoint'])
+        if not self.c.vision.buscar_objeto(orden['clase']):
+            self.get_logger().warn(f'Vision no confirmo {orden["clase"]}')
+        self.estado(f'agarrando {orden["clase"]}')
+        if not self.c.garra.agarrar(orden['clase']):
+            self.get_logger().warn('Garra no confirmo que tiene el objeto')
+        self.ir('sala')
+        if not self.c.vision.esperar_persona_al_frente(invitado):
+            self.get_logger().warn(f'Vision no confirmo que {invitado} esta al frente')
+        self.decir('aqui_esta', nombre=nombre, objeto=orden['objeto'])
+        entregado = self.c.garra.entregar()
+        self.estado(f'orden terminada para {invitado}' if entregado else f'entrega sin confirmar para {invitado}')
+        return entregado
+
     def secuencia(self):
         self.estado('inicio del reto')
         self.recibir_invitado('invitado_1')
-        self.estado('parte 1 terminada')
+        self.traer_objeto('invitado_1')
+        self.estado('parte 2 terminada')
 
 
 def main(args=None):

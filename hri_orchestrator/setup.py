@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'task_orchestrator_node = hri_orchestrator.task_orchestrator_node:main',
+            'simulador_equipos = hri_orchestrator.simulador_equipos:main',
         ],
     },
 )
