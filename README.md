@@ -99,19 +99,6 @@ Agrégala y luego ejecuta `docker compose up -d --build`:
 - Paquete de ROS 2: `apt-packages.txt` y el `package.xml` del paquete
 - Modelos: `models/` y `scripts/download_models.sh` (no se suben a GitHub)
 
-## Paquetes
-
-| Paquete | Contenido | Responsable |
-|---|---|---|
-| `hri_interfaces` | Mensajes, servicios y acciones de HRI | Sebastian |
-| `hri_audio` | Micrófono y parlante | Allisson y Felipe |
-| `hri_speech` | STT y TTS | Allisson y Felipe |
-| `hri_doorbell` | Detección del timbre | Por asignar |
-| `hri_dialogue` | Gestor de diálogo | Sebastian |
-| `hri_llm` | LLM | Juliana y Sara |
-| `hri_orchestrator` | Árbol de comportamiento | Sebastian |
-| `hri_bringup` | Archivos launch | Sebastian |
-
 El código en Python puro de STT, TTS y LLM va en `stt_engine.py`, `tts_engine.py` y
 `llm_backend.py`, que se pueden probar sin ROS.
 
