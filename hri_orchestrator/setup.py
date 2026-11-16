@@ -24,6 +24,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'task_orchestrator_node = hri_orchestrator.task_orchestrator_node:main',
         ],
     },
 )
