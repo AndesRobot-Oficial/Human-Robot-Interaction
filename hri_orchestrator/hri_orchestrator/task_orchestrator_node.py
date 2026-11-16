@@ -140,11 +140,36 @@ class TaskOrchestratorNode(Node):
         self.estado(f'orden terminada para {invitado}' if entregado else f'entrega sin confirmar para {invitado}')
         return entregado
 
+    def presentar(self):
+        ids = list(self.invitados)
+        if len(ids) < 2:
+            return
+        lados = self.c.vision.personas_en_sofa()
+        for actual, otro in ((ids[0], ids[1]), (ids[1], ids[0])):
+            self.estado(f'presentando {otro} a {actual} ({lados.get(actual, "lado desconocido")})')
+            self.decir('presentar',
+                       nombre_a=self.invitados[actual]['nombre'] or 'friend',
+                       nombre_b=self.invitados[otro]['nombre'] or 'our guest',
+                       bebida_b=self.invitados[otro]['bebida'] or 'unknown')
+
+    def recibir_bolsa(self):
+        self.decir('pedir_bolsa')
+        if not self.c.vision.buscar_objeto('bag'):
+            self.get_logger().warn('Vision no confirmo la bolsa')
+        self.decir('bolsa_seguridad')
+        if not self.c.garra.proceder():
+            self.get_logger().warn('Garra no confirmo que tiene la bolsa')
+        self.estado('bolsa recibida')
+
     def secuencia(self):
         self.estado('inicio del reto')
-        self.recibir_invitado('invitado_1')
-        self.traer_objeto('invitado_1')
-        self.estado('parte 2 terminada')
+        for invitado in ('invitado_1', 'invitado_2'):
+            self.recibir_invitado(invitado)
+            self.traer_objeto(invitado)
+        self.presentar()
+        self.recibir_bolsa()
+        self.decir('terminado')
+        self.estado('reto terminado')
 
 
 def main(args=None):
