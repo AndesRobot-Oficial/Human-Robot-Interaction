@@ -19,6 +19,8 @@ setup(
     license='MIT',
     tests_require=['pytest'],
     entry_points={
-        'console_scripts': [],
+        'console_scripts': [
+            'bert_node = hri_bert.bert_node:main',
+        ],
     },
 )
